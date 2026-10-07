@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -214,7 +215,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isNotificationListenerEnabled(): Boolean {
-        val enabled = android.app.NotificationManagerCompat.getEnabledListenerPackages(this)
+        val enabled = NotificationManagerCompat.getEnabledListenerPackages(this)
         return enabled.contains(packageName)
     }
 

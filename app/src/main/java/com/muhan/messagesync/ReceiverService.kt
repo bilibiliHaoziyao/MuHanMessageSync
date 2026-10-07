@@ -18,6 +18,7 @@ import javax.mail.event.MessageCountAdapter
 import javax.mail.event.MessageCountEvent
 import javax.mail.internet.MimeMessage
 import javax.mail.internet.MimeMultipart
+import java.util.concurrent.Executors
 import kotlin.concurrent.thread
 
 /**
@@ -125,7 +126,7 @@ class ReceiverService : Service() {
         var idleManager: IdleManager? = null
         var useIdle = false
         try {
-            idleManager = IdleManager(session, false)
+            idleManager = IdleManager(Executors.newSingleThreadExecutor(), session)
             idleManager.watch(folder)
             useIdle = true
         } catch (e: Exception) {

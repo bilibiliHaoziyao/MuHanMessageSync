@@ -92,7 +92,7 @@ class SenderService : NotificationListenerService() {
     }
 
     private fun notifyStatus(text: String) {
-        NotifyHelper.postStatus(this, CHANNEL_SENDER, "服务端状态", text)
+        NotifyHelper.postStatus(this, NotifyHelper.CHANNEL_STATUS, "服务端状态", text)
     }
 
     override fun onDestroy() {

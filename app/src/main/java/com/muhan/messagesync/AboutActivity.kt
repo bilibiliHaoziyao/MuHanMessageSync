@@ -17,7 +17,7 @@ class AboutActivity : AppCompatActivity() {
             open("https://github.com/bilibiliHaoziyao")
         }
         // 仓库地址
-        findViewById<TextView>(R.id.tvRepo).setOnClickListener {
+        findViewById<View>(R.id.tvRepo).setOnClickListener {
             open(getString(R.string.repo_url))
         }
     }
