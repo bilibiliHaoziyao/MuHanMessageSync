@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">慕寒消息云同步</string>
+    <string name="about">关于</string>
+    <string name="mode_sender">服务端（转发通知）</string>
+    <string name="mode_receiver">接收端（还原通知）</string>
+    <string name="smtp_settings">服务端设置 · SMTP 发信</string>
+    <string name="imap_settings">接收端设置 · IMAP 收信</string>
+    <string name="common_settings">通用设置</string>
+    <string name="device_name">设备名称</string>
+    <string name="smtp_host">SMTP 服务器地址（如 smtp.qq.com）</string>
+    <string name="smtp_port">SMTP 端口</string>
+    <string name="smtp_ssl">使用 SSL/TLS 加密</string>
+    <string name="smtp_user">SMTP 登录账号（邮箱地址）</string>
+    <string name="smtp_password">SMTP 授权码 / 密码</string>
+    <string name="smtp_from">发件人地址（留空则同登录账号）</string>
+    <string name="recipients">收件人邮箱（多个用英文逗号分隔，可实现多设备同时接收）</string>
+    <string name="imap_host">IMAP 服务器地址（如 imap.qq.com）</string>
+    <string name="imap_port">IMAP 端口</string>
+    <string name="imap_ssl">使用 SSL/TLS 加密</string>
+    <string name="imap_user">IMAP 登录账号（邮箱地址）</string>
+    <string name="imap_password">IMAP 授权码 / 密码</string>
+    <string name="imap_folder">收件箱文件夹</string>
+    <string name="save">保存设置</string>
+    <string name="toggle_service">启动服务</string>
+    <string name="test">测试</string>
+    <string name="about_title">关于慕寒消息云同步</string>
+    <string name="version_text">版本 0.1.0-beta</string>
+    <string name="license_text">本软件基于 MIT 协议开源</string>
+    <string name="repo_url">https://github.com/bilibiliHaoziyao/MuHanMessageSync</string>
+</resources>
