@@ -56,8 +56,6 @@ class ServerSettingsActivity : BaseActivity() {
     private lateinit var tvStatus: TextView
     private lateinit var btnAbout: TextView
 
-    private var serviceRunning = false
-
     private val notifPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) Toast.makeText(this, "通知权限已授予", Toast.LENGTH_SHORT).show()
@@ -215,10 +213,11 @@ class ServerSettingsActivity : BaseActivity() {
     }
 
     private fun toggleService() {
-        if (serviceRunning) {
+        // v1.1 修复：此前依赖 Activity 内的内存变量判断运行状态，
+        // Activity 重建后会误判为「未运行」，导致「停止服务」按钮失效。改为读取持久化状态。
+        if (SettingsStore.isServiceEnabled(this)) {
             stopServices()
             SettingsStore.setServiceEnabled(this, false)
-            serviceRunning = false
             refreshStatus()
             return
         }
@@ -251,7 +250,6 @@ class ServerSettingsActivity : BaseActivity() {
             startForegroundService(Intent(this, ReceiverService::class.java))
         }
         SettingsStore.setServiceEnabled(this, true)
-        serviceRunning = true
         refreshStatus()
     }
 

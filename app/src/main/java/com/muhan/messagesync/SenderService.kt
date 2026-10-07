@@ -1,9 +1,6 @@
 package com.muhan.messagesync
 
 import android.app.Notification
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -23,6 +20,13 @@ class SenderService : NotificationListenerService() {
 
     /** LRU 去重表，防止同一通知重复发送 */
     private val recentKeys = object : LinkedHashMap<String, Long>(128, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Long>?): Boolean {
+            return size > 256
+        }
+    }
+
+    /** 内容去重表（同一应用 + 相同标题正文，窗口期内合并） */
+    private val recentContent = object : LinkedHashMap<String, Long>(128, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Long>?): Boolean {
             return size > 256
         }
@@ -66,49 +70,67 @@ class SenderService : NotificationListenerService() {
         if (s.forwardMode == "whitelist" && !matchFilter(s.appFilter, appName, sbn.packageName)) return
         if (s.forwardMode == "blacklist" && matchFilter(s.appFilter, appName, sbn.packageName)) return
 
+        val time = sbn.postTime
+        val pkg = sbn.packageName
+        val subject = "${MailPayload.SUBJECT_PREFIX}${s.deviceName} · $appName"
+        val limit = s.historyLimit
+        val deviceName = s.deviceName
+
+        // 局内 key 去重
         val key = sbn.key ?: return
         synchronized(recentKeys) {
             if (recentKeys.containsKey(key)) return
             recentKeys[key] = System.currentTimeMillis()
         }
 
-        // 应用图标 -> base64，随邮件传输（接收端跨设备也能看到图标）
-        val iconB64: String? = IconUtil.appIconBitmap(this, sbn.packageName)?.let { bmp ->
-            IconUtil.bitmapToBase64(bmp)
-        } ?: IconUtil.iconToBitmap(n.smallIcon)?.let { IconUtil.bitmapToBase64(it) }
-
-        val payload = MailPayload(
-            device = s.deviceName,
-            app = appName,
-            pkg = sbn.packageName,
-            title = title,
-            text = text,
-            time = sbn.postTime,
-            icon = iconB64
-        )
-
-        val timeStr = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).format(Date(sbn.postTime))
-        val subject = "${MailPayload.SUBJECT_PREFIX}${s.deviceName} · $appName"
-        val body = payload.toJson().toString(2)
+        // v1.1 新增：合并重复内容（同一应用且标题正文相同，窗口期内只转发一次）
+        if (s.forwardDedup) {
+            val contentKey = "$pkg|$title|$text"
+            synchronized(recentContent) {
+                val last = recentContent[contentKey]
+                val now = System.currentTimeMillis()
+                if (last != null && now - last < DEDUP_WINDOW_MS) return
+                recentContent[contentKey] = now
+            }
+        }
 
         executor.submit {
+            // 图标采集与 base64 编码放到后台线程
+            // v1.1 修复：此前在 onNotificationPosted 中同步执行，通知频繁时会阻塞
+            val iconB64: String? = runCatching {
+                (IconUtil.appIconBitmap(this, pkg)?.let { IconUtil.bitmapToBase64(it) })
+                    ?: IconUtil.iconToBitmap(n.smallIcon)?.let { IconUtil.bitmapToBase64(it) }
+            }.getOrNull()
+
+            val payload = MailPayload(
+                device = deviceName,
+                app = appName,
+                pkg = pkg,
+                title = title,
+                text = text,
+                time = time,
+                icon = iconB64
+            )
+            val body = payload.toJson().toString(2)
             try {
                 SmtpSender.send(s, subject, body)
+                val timeStr = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).format(Date(time))
                 notifyStatus("已转发: $appName · $title ($timeStr)")
                 HistoryStore.add(
                     this,
                     HistoryStore.Item(
                         id = HistoryStore.newId(),
                         direction = "send",
-                        device = s.deviceName,
+                        device = deviceName,
                         app = appName,
-                        pkg = sbn.packageName,
+                        pkg = pkg,
                         title = title,
                         text = text,
-                        time = sbn.postTime,
-                        icon = iconB64
+                        time = time,
+                        iconPath = null
                     ),
-                    s.historyLimit
+                    limit,
+                    iconB64
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "发送邮件失败", e)
@@ -137,5 +159,6 @@ class SenderService : NotificationListenerService() {
     companion object {
         private const val TAG = "SenderService"
         const val MODE_SENDER = "sender"
+        private const val DEDUP_WINDOW_MS = 60_000L
     }
 }

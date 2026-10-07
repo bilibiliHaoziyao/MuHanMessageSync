@@ -39,7 +39,10 @@ object SettingsStore {
         val receiveVibrate: Boolean,
         val receiveSound: Boolean,
         val darkMode: String,           // "system" | "light" | "dark"
-        val showAppIcon: Boolean
+        val showAppIcon: Boolean,
+        // v1.1 新增
+        val forwardDedup: Boolean,      // 合并重复内容（同一应用且标题正文相同则跳过）
+        val historyDays: Int            // 历史保留天数，0 表示不限
     ) {
         val smtpValid: Boolean
             get() = smtpHost.isNotBlank() && smtpUser.isNotBlank() &&
@@ -53,11 +56,25 @@ object SettingsStore {
     fun defaultDeviceName(): String =
         "${Build.MODEL}-${UUID.randomUUID().toString().substring(0, 4)}"
 
+    /**
+     * 取设备名：首次生成后持久化到 SP。
+     * 修复 v1.1：此前 SP 无值时每次 load 都生成新的随机名，
+     * 会导致接收端回环判断失效、多设备识别混乱、界面显示不一致。
+     */
+    fun getOrCreateDeviceName(ctx: Context): String {
+        val p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val saved = p.getString("device_name", null)
+        if (!saved.isNullOrBlank()) return saved
+        val gen = defaultDeviceName()
+        p.edit().putString("device_name", gen).apply()
+        return gen
+    }
+
     fun load(ctx: Context): Settings {
         val p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         return Settings(
             mode = p.getString("mode", "sender") ?: "sender",
-            deviceName = p.getString("device_name", "")?.ifBlank { defaultDeviceName() } ?: defaultDeviceName(),
+            deviceName = getOrCreateDeviceName(ctx),
             smtpHost = p.getString("smtp_host", "") ?: "",
             smtpPort = p.getInt("smtp_port", 465),
             smtpSsl = p.getBoolean("smtp_ssl", true),
@@ -88,7 +105,9 @@ object SettingsStore {
             receiveVibrate = p.getBoolean("receive_vibrate", true),
             receiveSound = p.getBoolean("receive_sound", false),
             darkMode = p.getString("dark_mode", "system") ?: "system",
-            showAppIcon = p.getBoolean("show_app_icon", true)
+            showAppIcon = p.getBoolean("show_app_icon", true),
+            forwardDedup = p.getBoolean("forward_dedup", false),
+            historyDays = p.getInt("history_days", 30)
         )
     }
 
@@ -121,6 +140,8 @@ object SettingsStore {
             putBoolean("receive_sound", s.receiveSound)
             putString("dark_mode", s.darkMode)
             putBoolean("show_app_icon", s.showAppIcon)
+            putBoolean("forward_dedup", s.forwardDedup)
+            putInt("history_days", s.historyDays)
             apply()
         }
     }

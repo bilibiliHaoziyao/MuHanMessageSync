@@ -85,7 +85,7 @@ class ReceiverService : Service() {
     private fun connectCycle() {
         val s = SettingsStore.load(this)
         if (s.mode != "receiver" || !s.imapValid) {
-            updateStatus("请先在主界面配置 IMAP 接收设置")
+            updateStatus("请在「设置 → 邮箱服务器设置」中完成接收端（IMAP）配置")
             Thread.sleep(5_000)
             return
         }
@@ -194,7 +194,7 @@ class ReceiverService : Service() {
                 mainHandler.post {
                     NotifyHelper.postMessage(
                         this, payload.device, payload.app, payload.title, payload.text,
-                        iconBmp, high, s.receiveVibrate, s.receiveSound
+                        iconBmp, high, s.receiveVibrate, s.receiveSound, payload.pkg
                     )
                 }
                 HistoryStore.add(
@@ -208,9 +208,10 @@ class ReceiverService : Service() {
                         title = payload.title,
                         text = payload.text,
                         time = payload.time,
-                        icon = payload.icon
+                        iconPath = null
                     ),
-                    s.historyLimit
+                    s.historyLimit,
+                    payload.icon
                 )
             } else if (msg.subject?.startsWith(MailPayload.SUBJECT_PREFIX) == true) {
                 mainHandler.post {

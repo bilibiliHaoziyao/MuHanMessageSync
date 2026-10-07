@@ -11,8 +11,8 @@ android {
         applicationId = "com.muhan.messagesync"
         minSdk = 23
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.0.0"
+        versionCode = 5
+        versionName = "1.1.0"
     }
 
     signingConfigs {

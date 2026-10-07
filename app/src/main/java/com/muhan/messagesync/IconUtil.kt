@@ -73,4 +73,42 @@ object IconUtil {
     } catch (e: PackageManager.NameNotFoundException) {
         false
     }
+
+    // ===== v1.1：图标落盘 =====
+    // 修复：此前历史记录把 base64 图标字符串直接存进 SharedPreferences 的单个 key，
+    // 数百条即可达到数 MB，读取时全量载入内存、写入时全量序列化，存在性能与稳定性隐患。
+
+    private fun iconDir(ctx: Context): java.io.File =
+        java.io.File(ctx.filesDir, "icons").apply { if (!exists()) mkdirs() }
+
+    /** 将 base64 图标保存为 PNG 文件，返回绝对路径（无图标或失败返回 null） */
+    fun saveIconFile(ctx: Context, id: String, b64: String?): String? {
+        if (b64.isNullOrBlank()) return null
+        val bmp = base64ToBitmap(b64) ?: return null
+        return try {
+            val f = java.io.File(iconDir(ctx), "$id.png")
+            java.io.FileOutputStream(f).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            f.absolutePath
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /** 从文件路径解码图标 */
+    fun decodeIconFile(path: String?): Bitmap? {
+        if (path.isNullOrBlank()) return null
+        return try {
+            android.graphics.BitmapFactory.decodeFile(path)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun deleteIconFile(path: String?) {
+        if (path.isNullOrBlank()) return
+        try {
+            java.io.File(path).delete()
+        } catch (e: Exception) {
+        }
+    }
 }

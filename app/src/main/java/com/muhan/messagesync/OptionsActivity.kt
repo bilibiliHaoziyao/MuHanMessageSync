@@ -19,8 +19,10 @@ class OptionsActivity : BaseActivity() {
     private lateinit var etAppFilter: TextInputEditText
     private lateinit var etPoll: TextInputEditText
     private lateinit var etHistoryLimit: TextInputEditText
+    private lateinit var etHistoryDays: TextInputEditText
     private lateinit var switchSkipEmpty: MaterialSwitch
     private lateinit var switchSkipSystem: MaterialSwitch
+    private lateinit var switchDedup: MaterialSwitch
     private lateinit var switchVibrate: MaterialSwitch
     private lateinit var switchSound: MaterialSwitch
     private lateinit var switchShowIcon: MaterialSwitch
@@ -40,8 +42,10 @@ class OptionsActivity : BaseActivity() {
         etAppFilter = findViewById(R.id.etAppFilter)
         etPoll = findViewById(R.id.etPoll)
         etHistoryLimit = findViewById(R.id.etHistoryLimit)
+        etHistoryDays = findViewById(R.id.etHistoryDays)
         switchSkipEmpty = findViewById(R.id.switchSkipEmpty)
         switchSkipSystem = findViewById(R.id.switchSkipSystem)
+        switchDedup = findViewById(R.id.switchDedup)
         switchVibrate = findViewById(R.id.switchVibrate)
         switchSound = findViewById(R.id.switchSound)
         switchShowIcon = findViewById(R.id.switchShowIcon)
@@ -60,9 +64,11 @@ class OptionsActivity : BaseActivity() {
         etAppFilter.setText(s.appFilter.joinToString(","))
         switchSkipEmpty.isChecked = s.skipEmptyText
         switchSkipSystem.isChecked = s.skipSystemApps
+        switchDedup.isChecked = s.forwardDedup
         etPoll.setText(s.pollIntervalSec.toString())
         if (s.notifyPriority == "high") prioToggle.check(R.id.btnPrioHigh) else prioToggle.check(R.id.btnPrioNormal)
         etHistoryLimit.setText(s.historyLimit.toString())
+        etHistoryDays.setText(s.historyDays.toString())
         switchVibrate.isChecked = s.receiveVibrate
         switchSound.isChecked = s.receiveSound
         switchShowIcon.isChecked = s.showAppIcon
@@ -76,6 +82,7 @@ class OptionsActivity : BaseActivity() {
 
     private fun save() {
         val s = SettingsStore.load(this)
+        val oldDarkMode = s.darkMode
         val forwardMode = when (modeToggle.checkedButtonId) {
             R.id.btnModeWhite -> "whitelist"
             R.id.btnModeBlack -> "blacklist"
@@ -93,6 +100,7 @@ class OptionsActivity : BaseActivity() {
             .filter { it.isNotBlank() }
         val poll = etPoll.text?.toString()?.toIntOrNull()?.coerceIn(5, 300) ?: 20
         val limit = etHistoryLimit.text?.toString()?.toIntOrNull()?.coerceIn(20, 1000) ?: 200
+        val days = etHistoryDays.text?.toString()?.toIntOrNull()?.coerceIn(0, 3650) ?: 30
 
         SettingsStore.save(
             this,
@@ -101,9 +109,11 @@ class OptionsActivity : BaseActivity() {
                 appFilter = appFilter,
                 skipEmptyText = switchSkipEmpty.isChecked,
                 skipSystemApps = switchSkipSystem.isChecked,
+                forwardDedup = switchDedup.isChecked,
                 pollIntervalSec = poll,
                 notifyPriority = notifyPriority,
                 historyLimit = limit,
+                historyDays = days,
                 receiveVibrate = switchVibrate.isChecked,
                 receiveSound = switchSound.isChecked,
                 showAppIcon = switchShowIcon.isChecked,
@@ -112,7 +122,8 @@ class OptionsActivity : BaseActivity() {
             )
         )
         Toast.makeText(this, getString(R.string.opt_saved), Toast.LENGTH_SHORT).show()
-        // 深色模式变更需重建以使主题立即生效
-        recreate()
+        // v1.1 修复：此前无条件重建 Activity（每次点保存都会闪一下），
+        // 现仅在深色模式真正发生变化时才重建。
+        if (darkMode != oldDarkMode) recreate()
     }
 }

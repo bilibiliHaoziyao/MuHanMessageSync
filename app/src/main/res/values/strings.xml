@@ -7,6 +7,14 @@
     <string name="history_empty">暂无同步记录\n服务端监听到的通知与接收端收到的消息都会显示在这里</string>
     <string name="history_clear">清空历史</string>
     <string name="history_cleared">历史记录已清空</string>
+    <string name="history_stats">今日 %1$d 条 · 累计 %2$d 条</string>
+    <string name="history_copied">通知内容已复制</string>
+    <string name="history_delete_confirm">删除该条记录？</string>
+    <string name="delete">删除</string>
+    <string name="search_hint">搜索应用名 / 标题 / 内容</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_send">仅发送</string>
+    <string name="filter_receive">仅接收</string>
     <string name="history_from">来自 %1$s</string>
     <string name="dir_send">发送</string>
     <string name="dir_receive">接收</string>
@@ -77,6 +85,8 @@
     <string name="opt_dark_light">浅色</string>
     <string name="opt_dark_dark">深色</string>
     <string name="opt_show_icon">显示应用图标</string>
+    <string name="opt_forward_dedup">合并重复内容（60 秒内相同内容只转发一次）</string>
+    <string name="opt_history_days">历史保留天数（0 为不限）</string>
     <string name="opt_saved">选项已保存</string>
 
     <!-- 首启引导 -->

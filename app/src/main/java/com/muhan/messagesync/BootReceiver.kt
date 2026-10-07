@@ -15,6 +15,9 @@ class BootReceiver : BroadcastReceiver() {
         if (!SettingsStore.isServiceEnabled(context)) return
 
         val s = SettingsStore.load(context)
+        // v1.1 修复：尊重用户「开机自启」开关（此前该选项完全未生效）
+        if (!s.autoStart) return
+
         when (s.mode) {
             "sender" -> context.startForegroundService(Intent(context, SenderService::class.java))
             "receiver" -> context.startForegroundService(Intent(context, ReceiverService::class.java))

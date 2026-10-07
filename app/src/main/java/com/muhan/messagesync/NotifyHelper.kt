@@ -20,6 +20,12 @@ object NotifyHelper {
     const val CHANNEL_MESSAGES = "sync_messages"    // 接收到的同步消息（有声）
     const val CHANNEL_MESSAGES_SILENT = "sync_messages_silent" // 静音消息
 
+    /**
+     * 状态通知使用固定 id，新状态覆盖旧状态。
+     * v1.1 修复：此前以文本 hashCode 作 id，每转发一条通知都会新增一条系统通知，造成刷屏。
+     */
+    private const val STATUS_ID = 2001
+
     private val VIBRATE_PATTERN = longArrayOf(0, 180, 120, 220)
 
     fun ensureChannels(ctx: Context) {
@@ -67,7 +73,7 @@ object NotifyHelper {
             .setContentIntent(mainIntent(ctx))
             .build()
         try {
-            NotificationManagerCompat.from(ctx).notify(text.hashCode(), n)
+            NotificationManagerCompat.from(ctx).notify(STATUS_ID, n)
         } catch (e: SecurityException) {
             // 未授予通知权限
         }
@@ -75,6 +81,7 @@ object NotifyHelper {
 
     /**
      * 发送一条还原的同步消息通知。
+     * @param pkg 来源应用包名，用于点击通知时尝试打开该应用
      * @param icon 应用图标（可空）；为空时由接收端尝试用包名本地获取
      * @param priorityHigh 是否高优先级（弹窗+重要）
      * @param vibrate 是否震动
@@ -89,7 +96,8 @@ object NotifyHelper {
         icon: Bitmap? = null,
         priorityHigh: Boolean = false,
         vibrate: Boolean = true,
-        sound: Boolean = false
+        sound: Boolean = false,
+        pkg: String = ""
     ) {
         if (!NotificationManagerCompat.from(ctx).areNotificationsEnabled()) return
         ensureChannels(ctx)
@@ -103,7 +111,7 @@ object NotifyHelper {
             .setStyle(bigText)
             .setSubText("来自 $fromDevice")
             .setAutoCancel(true)
-            .setContentIntent(mainIntent(ctx))
+            .setContentIntent(contentIntent(ctx, pkg))
         if (icon != null) builder.setLargeIcon(icon)
         builder.priority = if (priorityHigh) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT
         if (vibrate) builder.setVibrate(VIBRATE_PATTERN)
@@ -113,6 +121,25 @@ object NotifyHelper {
                 .notify("msg_${fromDevice}_${app}_${title}_${text}_${System.currentTimeMillis()}".hashCode(), builder.build())
         } catch (e: SecurityException) {
         }
+    }
+
+    /**
+     * 通知点击意图：若本机安装了来源应用则直接打开该应用，否则打开历史主页。
+     */
+    private fun contentIntent(ctx: Context, pkg: String): PendingIntent {
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        if (pkg.isNotBlank()) {
+            val launch = try {
+                ctx.packageManager.getLaunchIntentForPackage(pkg)
+            } catch (e: Exception) {
+                null
+            }
+            if (launch != null) {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                return PendingIntent.getActivity(ctx, pkg.hashCode(), launch, flags)
+            }
+        }
+        return mainIntent(ctx)
     }
 
     private fun mainIntent(ctx: Context): PendingIntent = PendingIntent.getActivity(
