@@ -35,14 +35,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "慕寒消息云同步 ${GITHUB_REF_NAME}" \
-            --notes "## 慕寒消息云同步 ${GITHUB_REF_NAME}
+          NOTES=$(cat <<'EOF'
+          ## 慕寒消息云同步 ${{ github.ref_name }}
 
-- 服务端模式：监听系统所有通知，通过 SMTP 邮件实时转发
-- 接收端模式：IMAP 实时收信（IDLE），还原为系统通知
-- 支持多设备：多收件人 + 多接收端共用邮箱去重
-- 已使用 release 签名
+          - 服务端模式：监听系统所有通知，通过 SMTP 邮件实时转发
+          - 接收端模式：IMAP 实时收信（IDLE），还原为系统通知
+          - 支持多设备：多收件人 + 多接收端共用邮箱去重
+          - 已使用 release 签名
 
-详见 [README](https://github.com/${GITHUB_REPOSITORY}/blob/main/README.md)。" \
-            app/build/outputs/apk/release/app-release.apk#"慕寒消息云同步-${GITHUB_REF_NAME}.apk"
+          详见 README。
+          EOF
+          )
+          gh release create "${{ github.ref_name }}" \
+            --title "慕寒消息云同步 ${{ github.ref_name }}" \
+            --notes "$NOTES" \
+            "app/build/outputs/apk/release/app-release.apk#慕寒消息云同步-${{ github.ref_name }}.apk"
