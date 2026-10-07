@@ -31,7 +31,9 @@
     <string name="toggle_service">启动服务</string>
     <string name="test">测试</string>
     <string name="about_title">关于慕寒消息云同步</string>
-    <string name="version_text">版本 0.2.0-beta</string>
+    <string name="intro_title">软件介绍</string>
+    <string name="intro_content">慕寒消息云同步是一款 Android 通知云同步工具，软件内整合服务端与接收端：服务端通过系统「通知使用权」监听本机所有通知，并实时通过电子邮箱（SMTP）转发；接收端通过 IMAP 实时收信，将邮件还原为系统通知。内置 QQ邮箱 / 163邮箱 / Gmail / Outlook 快速预设，服务端可配置多个收件人，多台接收端设备可共用同一邮箱同时接收，支持开机自启与后台保活。</string>
+    <string name="version_text">版本 0.2.1-beta</string>
     <string name="role_assistant_dev">辅助开发</string>
     <!-- 首启引导 -->
     <string name="onboard_title">欢迎使用慕寒消息云同步</string>
