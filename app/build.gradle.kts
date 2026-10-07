@@ -38,6 +38,19 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "/META-INF/NOTICE.md",
+                "/META-INF/LICENSE.md",
+                "/META-INF/NOTICE.txt",
+                "/META-INF/LICENSE.txt",
+                "/META-INF/NOTICE",
+                "/META-INF/LICENSE"
+            )
+        }
+    }
 }
 
 dependencies {
