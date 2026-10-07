@@ -8,7 +8,6 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
 import com.google.android.material.button.MaterialButton
 
@@ -16,7 +15,7 @@ import com.google.android.material.button.MaterialButton
  * 首次进入引导：开启「通知使用权」与「后台保活」。
  * 已完成过引导的用户会直接进入主界面。
  */
-class OnboardingActivity : AppCompatActivity() {
+class OnboardingActivity : BaseActivity() {
 
     private lateinit var tvStep1Status: TextView
     private lateinit var tvStep2Status: TextView

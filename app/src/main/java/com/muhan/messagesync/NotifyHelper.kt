@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
@@ -16,7 +17,10 @@ object NotifyHelper {
 
     const val CHANNEL_SERVICE = "sync_service"      // 前台服务常驻通知
     const val CHANNEL_STATUS = "sync_status"        // 状态提示
-    const val CHANNEL_MESSAGES = "sync_messages"    // 接收到的同步消息（重要）
+    const val CHANNEL_MESSAGES = "sync_messages"    // 接收到的同步消息（有声）
+    const val CHANNEL_MESSAGES_SILENT = "sync_messages_silent" // 静音消息
+
+    private val VIBRATE_PATTERN = longArrayOf(0, 180, 120, 220)
 
     fun ensureChannels(ctx: Context) {
         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -27,7 +31,15 @@ object NotifyHelper {
             NotificationChannel(CHANNEL_STATUS, "同步状态", NotificationManager.IMPORTANCE_LOW)
         )
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_MESSAGES, "同步消息", NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel(CHANNEL_MESSAGES, "同步消息", NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "收到同步消息时提示"
+            }
+        )
+        nm.createNotificationChannel(
+            NotificationChannel(CHANNEL_MESSAGES_SILENT, "同步消息（静音）", NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = "收到同步消息时不播放提示音"
+                setSound(null, null)
+            }
         )
     }
 
@@ -61,13 +73,30 @@ object NotifyHelper {
         }
     }
 
-    /** 发送一条还原的同步消息通知 */
-    fun postMessage(ctx: Context, fromDevice: String, app: String, title: String, text: String) {
+    /**
+     * 发送一条还原的同步消息通知。
+     * @param icon 应用图标（可空）；为空时由接收端尝试用包名本地获取
+     * @param priorityHigh 是否高优先级（弹窗+重要）
+     * @param vibrate 是否震动
+     * @param sound 是否播放提示音
+     */
+    fun postMessage(
+        ctx: Context,
+        fromDevice: String,
+        app: String,
+        title: String,
+        text: String,
+        icon: Bitmap? = null,
+        priorityHigh: Boolean = false,
+        vibrate: Boolean = true,
+        sound: Boolean = false
+    ) {
         if (!NotificationManagerCompat.from(ctx).areNotificationsEnabled()) return
         ensureChannels(ctx)
         val bigText = NotificationCompat.BigTextStyle()
             .bigText(if (text.isBlank()) title else "$title\n$text")
-        val n = NotificationCompat.Builder(ctx, CHANNEL_MESSAGES)
+        val channel = if (sound) CHANNEL_MESSAGES else CHANNEL_MESSAGES_SILENT
+        val builder = NotificationCompat.Builder(ctx, channel)
             .setSmallIcon(android.R.drawable.ic_dialog_email)
             .setContentTitle(if (app.isBlank()) title else "$app：$title")
             .setContentText(text.ifBlank { title })
@@ -75,9 +104,13 @@ object NotifyHelper {
             .setSubText("来自 $fromDevice")
             .setAutoCancel(true)
             .setContentIntent(mainIntent(ctx))
-            .build()
+        if (icon != null) builder.setLargeIcon(icon)
+        builder.priority = if (priorityHigh) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT
+        if (vibrate) builder.setVibrate(VIBRATE_PATTERN)
+        else builder.setVibrate(null)
         try {
-            NotificationManagerCompat.from(ctx).notify("msg_${fromDevice}_${title}_${text}".hashCode(), n)
+            NotificationManagerCompat.from(ctx)
+                .notify("msg_${fromDevice}_${app}_${title}_${text}_${System.currentTimeMillis()}".hashCode(), builder.build())
         } catch (e: SecurityException) {
         }
     }

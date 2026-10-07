@@ -2,6 +2,23 @@
 <resources>
     <string name="app_name">慕寒消息云同步</string>
     <string name="about">关于</string>
+    <!-- 历史主页 -->
+    <string name="history_title">同步历史</string>
+    <string name="history_empty">暂无同步记录\n服务端监听到的通知与接收端收到的消息都会显示在这里</string>
+    <string name="history_clear">清空历史</string>
+    <string name="history_cleared">历史记录已清空</string>
+    <string name="history_from">来自 %1$s</string>
+    <string name="dir_send">发送</string>
+    <string name="dir_receive">接收</string>
+
+    <!-- 设置主页 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_server">邮箱服务器设置</string>
+    <string name="settings_server_desc">配置服务端 / 接收端账号与服务器</string>
+    <string name="settings_options">同步选项</string>
+    <string name="settings_options_desc">转发过滤、轮询、通知与历史等</string>
+
+    <!-- 原主界面相关 -->
     <string name="mode_sender">服务端（转发通知）</string>
     <string name="mode_receiver">接收端（还原通知）</string>
     <string name="smtp_settings">服务端设置 · SMTP 发信</string>
@@ -33,8 +50,35 @@
     <string name="about_title">关于慕寒消息云同步</string>
     <string name="intro_title">软件介绍</string>
     <string name="intro_content">慕寒消息云同步是一款 Android 通知云同步工具，软件内整合服务端与接收端：服务端通过系统「通知使用权」监听本机所有通知，并实时通过电子邮箱（SMTP）转发；接收端通过 IMAP 实时收信，将邮件还原为系统通知。内置 QQ邮箱 / 163邮箱 / Gmail / Outlook 快速预设，服务端可配置多个收件人，多台接收端设备可共用同一邮箱同时接收，支持开机自启与后台保活。</string>
-    <string name="version_text">版本 0.2.1-beta</string>
+    <string name="version_text">版本 1.0.0</string>
     <string name="role_assistant_dev">辅助开发</string>
+
+    <!-- 同步选项 -->
+    <string name="options_title">同步选项</string>
+    <string name="opt_forward_mode">转发模式</string>
+    <string name="opt_forward_all">全部应用</string>
+    <string name="opt_forward_whitelist">仅白名单</string>
+    <string name="opt_forward_blacklist">排除名单</string>
+    <string name="opt_app_filter">应用名单</string>
+    <string name="opt_app_filter_hint">包名或应用名，多个用英文逗号分隔（仅白名单/排除名单生效）</string>
+    <string name="opt_skip_empty">跳过无文字通知</string>
+    <string name="opt_skip_system">跳过系统应用通知</string>
+    <string name="opt_poll_interval">轮询间隔（秒）</string>
+    <string name="opt_poll_interval_hint">服务器不支持 IDLE 实时推送时使用</string>
+    <string name="opt_notify_priority">通知优先级</string>
+    <string name="opt_priority_default">普通</string>
+    <string name="opt_priority_high">重要（弹窗+提示音）</string>
+    <string name="opt_history_limit">历史保留条数</string>
+    <string name="opt_auto_start">开机自启</string>
+    <string name="opt_receive_vibrate">接收时震动</string>
+    <string name="opt_receive_sound">接收时提示音</string>
+    <string name="opt_dark_mode">深色模式</string>
+    <string name="opt_dark_system">跟随系统</string>
+    <string name="opt_dark_light">浅色</string>
+    <string name="opt_dark_dark">深色</string>
+    <string name="opt_show_icon">显示应用图标</string>
+    <string name="opt_saved">选项已保存</string>
+
     <!-- 首启引导 -->
     <string name="onboard_title">欢迎使用慕寒消息云同步</string>
     <string name="onboard_intro">首次使用请完成以下两步设置，确保通知可以正常同步</string>

@@ -11,7 +11,8 @@ data class MailPayload(
     val pkg: String,
     val title: String,
     val text: String,
-    val time: Long
+    val time: Long,
+    val icon: String? = null   // 应用图标的 base64 PNG（可空）
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("device", device)
@@ -20,6 +21,7 @@ data class MailPayload(
         put("title", title)
         put("text", text)
         put("time", time)
+        if (!icon.isNullOrBlank()) put("icon", icon)
     }
 
     companion object {
@@ -35,7 +37,8 @@ data class MailPayload(
                 pkg = o.optString("pkg", ""),
                 title = o.optString("title", ""),
                 text = o.optString("text", ""),
-                time = o.optLong("time", 0L)
+                time = o.optLong("time", 0L),
+                icon = o.optString("icon", "").takeIf { it.isNotBlank() }
             )
         } catch (e: Exception) {
             null

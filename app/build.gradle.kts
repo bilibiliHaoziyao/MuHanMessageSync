@@ -11,8 +11,8 @@ android {
         applicationId = "com.muhan.messagesync"
         minSdk = 23
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.2.1-beta"
+        versionCode = 4
+        versionName = "1.0.0"
     }
 
     signingConfigs {
@@ -58,6 +58,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     // JavaMail for Android：SMTP 发信 / IMAP 收信（支持 IDLE）
     implementation("com.sun.mail:android-mail:1.6.7")

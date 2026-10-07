@@ -6,4 +6,6 @@
     <color name="background">#FAF3F5</color>
     <color name="surface">#FFFFFF</color>
     <color name="text_main">#3B2E33</color>
+    <color name="text_secondary">#8A767E</color>
+    <color name="divider">#ECE0E6</color>
 </resources>

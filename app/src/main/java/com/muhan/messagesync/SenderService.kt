@@ -1,8 +1,9 @@
 package com.muhan.messagesync
 
 import android.app.Notification
-import android.app.PendingIntent
-import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -37,8 +38,10 @@ class SenderService : NotificationListenerService() {
         sbn ?: return
         val s = SettingsStore.load(this)
         if (s.mode != MODE_SENDER || !s.smtpValid) return
-        // 跳过自己产生的通知
-        if (sbn.packageName == packageName) return
+        if (sbn.packageName == packageName) return   // 跳过自身
+
+        // 系统应用过滤
+        if (s.skipSystemApps && IconUtil.isSystemApp(this, sbn.packageName)) return
 
         val n = sbn.notification ?: return
         val extras = n.extras
@@ -46,17 +49,9 @@ class SenderService : NotificationListenerService() {
         val text = (extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
             ?: extras.getCharSequence(Notification.EXTRA_TEXT)?.toString())?.trim() ?: ""
 
-        // 空通知、进度条类通知跳过
-        if (title.isBlank() && text.isBlank()) return
-        if (extras.containsKey(Notification.EXTRA_PROGRESS) &&
-            extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 &&
-            title.contains("%")
-        ) return
-
-        val key = sbn.key ?: return
-        synchronized(recentKeys) {
-            if (recentKeys.containsKey(key)) return
-            recentKeys[key] = System.currentTimeMillis()
+        // 无文字通知过滤
+        if (title.isBlank() && text.isBlank()) {
+            if (s.skipEmptyText) return
         }
 
         val appName = try {
@@ -67,13 +62,29 @@ class SenderService : NotificationListenerService() {
             sbn.packageName
         }
 
+        // 白名单 / 黑名单
+        if (s.forwardMode == "whitelist" && !matchFilter(s.appFilter, appName, sbn.packageName)) return
+        if (s.forwardMode == "blacklist" && matchFilter(s.appFilter, appName, sbn.packageName)) return
+
+        val key = sbn.key ?: return
+        synchronized(recentKeys) {
+            if (recentKeys.containsKey(key)) return
+            recentKeys[key] = System.currentTimeMillis()
+        }
+
+        // 应用图标 -> base64，随邮件传输（接收端跨设备也能看到图标）
+        val iconB64: String? = IconUtil.appIconBitmap(this, sbn.packageName)?.let { bmp ->
+            IconUtil.bitmapToBase64(bmp)
+        } ?: IconUtil.iconToBitmap(n.smallIcon)?.let { IconUtil.bitmapToBase64(it) }
+
         val payload = MailPayload(
             device = s.deviceName,
             app = appName,
             pkg = sbn.packageName,
             title = title,
             text = text,
-            time = sbn.postTime
+            time = sbn.postTime,
+            icon = iconB64
         )
 
         val timeStr = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA).format(Date(sbn.postTime))
@@ -84,11 +95,34 @@ class SenderService : NotificationListenerService() {
             try {
                 SmtpSender.send(s, subject, body)
                 notifyStatus("已转发: $appName · $title ($timeStr)")
+                HistoryStore.add(
+                    this,
+                    HistoryStore.Item(
+                        id = HistoryStore.newId(),
+                        direction = "send",
+                        device = s.deviceName,
+                        app = appName,
+                        pkg = sbn.packageName,
+                        title = title,
+                        text = text,
+                        time = sbn.postTime,
+                        icon = iconB64
+                    ),
+                    s.historyLimit
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "发送邮件失败", e)
                 notifyStatus("发送失败: ${e.message ?: e.javaClass.simpleName}")
             }
         }
+    }
+
+    /** 匹配应用名单（包名或应用名，忽略大小写包含） */
+    private fun matchFilter(filter: List<String>, appName: String, pkg: String): Boolean {
+        if (filter.isEmpty()) return false
+        val a = appName.lowercase(Locale.CHINA)
+        val p = pkg.lowercase(Locale.CHINA)
+        return filter.any { it.lowercase(Locale.CHINA).let { kw -> a.contains(kw) || p.contains(kw) } }
     }
 
     private fun notifyStatus(text: String) {

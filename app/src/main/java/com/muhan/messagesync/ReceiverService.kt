@@ -3,6 +3,7 @@ package com.muhan.messagesync
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -17,7 +18,6 @@ import javax.mail.Session
 import javax.mail.event.MessageCountAdapter
 import javax.mail.event.MessageCountEvent
 import javax.mail.internet.MimeMessage
-import javax.mail.internet.MimeMultipart
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread
 
@@ -139,9 +139,10 @@ class ReceiverService : Service() {
                 Thread.sleep(1_000)
             }
         } else {
-            updateStatus("已连接 ${s.imapHost}（轮询模式，每 20 秒）")
+            val interval = (s.pollIntervalSec.coerceIn(5, 300)) * 1000L
+            updateStatus("已连接 ${s.imapHost}（轮询模式，每 ${s.pollIntervalSec} 秒）")
             while (running && folder.isOpen) {
-                Thread.sleep(20_000)
+                Thread.sleep(interval)
                 scanRecent(folder, s, processed)
             }
         }
@@ -185,15 +186,37 @@ class ReceiverService : Service() {
             val body = extractText(msg)
             val payload = MailPayload.parse(body)
             if (payload != null) {
+                val iconBmp: Bitmap? = if (s.showAppIcon) {
+                    payload.icon?.let { IconUtil.base64ToBitmap(it) }
+                        ?: IconUtil.appIconBitmap(this, payload.pkg)
+                } else null
+                val high = s.notifyPriority == "high"
                 mainHandler.post {
                     NotifyHelper.postMessage(
-                        this, payload.device, payload.app, payload.title, payload.text
+                        this, payload.device, payload.app, payload.title, payload.text,
+                        iconBmp, high, s.receiveVibrate, s.receiveSound
                     )
                 }
+                HistoryStore.add(
+                    this,
+                    HistoryStore.Item(
+                        id = HistoryStore.newId(),
+                        direction = "receive",
+                        device = payload.device,
+                        app = payload.app,
+                        pkg = payload.pkg,
+                        title = payload.title,
+                        text = payload.text,
+                        time = payload.time,
+                        icon = payload.icon
+                    ),
+                    s.historyLimit
+                )
             } else if (msg.subject?.startsWith(MailPayload.SUBJECT_PREFIX) == true) {
                 mainHandler.post {
                     NotifyHelper.postMessage(
-                        this, fromDevice, "", msg.subject ?: "同步消息", body.take(500)
+                        this, fromDevice, "", msg.subject ?: "同步消息", body.take(500),
+                        null, s.notifyPriority == "high", s.receiveVibrate, s.receiveSound
                     )
                 }
             }

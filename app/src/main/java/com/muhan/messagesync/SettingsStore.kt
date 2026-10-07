@@ -26,7 +26,20 @@ object SettingsStore {
         val imapSsl: Boolean,
         val imapUser: String,
         val imapPassword: String,
-        val imapFolder: String
+        val imapFolder: String,
+        // 同步选项（自定义）
+        val forwardMode: String,        // "all" | "whitelist" | "blacklist"
+        val appFilter: List<String>,    // 包名或应用名
+        val skipEmptyText: Boolean,
+        val skipSystemApps: Boolean,
+        val pollIntervalSec: Int,
+        val notifyPriority: String,     // "default" | "high"
+        val historyLimit: Int,
+        val autoStart: Boolean,
+        val receiveVibrate: Boolean,
+        val receiveSound: Boolean,
+        val darkMode: String,           // "system" | "light" | "dark"
+        val showAppIcon: Boolean
     ) {
         val smtpValid: Boolean
             get() = smtpHost.isNotBlank() && smtpUser.isNotBlank() &&
@@ -60,7 +73,22 @@ object SettingsStore {
             imapSsl = p.getBoolean("imap_ssl", true),
             imapUser = p.getString("imap_user", "") ?: "",
             imapPassword = p.getString("imap_password", "") ?: "",
-            imapFolder = p.getString("imap_folder", "INBOX")?.ifBlank { "INBOX" } ?: "INBOX"
+            imapFolder = p.getString("imap_folder", "INBOX")?.ifBlank { "INBOX" } ?: "INBOX",
+            forwardMode = p.getString("forward_mode", "all") ?: "all",
+            appFilter = (p.getString("app_filter", "") ?: "")
+                .split(',', '，', ';', '；', '\n')
+                .map { it.trim() }
+                .filter { it.isNotBlank() },
+            skipEmptyText = p.getBoolean("skip_empty_text", true),
+            skipSystemApps = p.getBoolean("skip_system_apps", true),
+            pollIntervalSec = p.getInt("poll_interval_sec", 20),
+            notifyPriority = p.getString("notify_priority", "default") ?: "default",
+            historyLimit = p.getInt("history_limit", 200),
+            autoStart = p.getBoolean("auto_start", true),
+            receiveVibrate = p.getBoolean("receive_vibrate", true),
+            receiveSound = p.getBoolean("receive_sound", false),
+            darkMode = p.getString("dark_mode", "system") ?: "system",
+            showAppIcon = p.getBoolean("show_app_icon", true)
         )
     }
 
@@ -81,11 +109,19 @@ object SettingsStore {
             putString("imap_user", s.imapUser)
             putString("imap_password", s.imapPassword)
             putString("imap_folder", s.imapFolder)
+            putString("forward_mode", s.forwardMode)
+            putString("app_filter", s.appFilter.joinToString(","))
+            putBoolean("skip_empty_text", s.skipEmptyText)
+            putBoolean("skip_system_apps", s.skipSystemApps)
+            putInt("poll_interval_sec", s.pollIntervalSec)
+            putString("notify_priority", s.notifyPriority)
+            putInt("history_limit", s.historyLimit)
+            putBoolean("auto_start", s.autoStart)
+            putBoolean("receive_vibrate", s.receiveVibrate)
+            putBoolean("receive_sound", s.receiveSound)
+            putString("dark_mode", s.darkMode)
+            putBoolean("show_app_icon", s.showAppIcon)
             apply()
-        }
-        // 记住设备名，避免每次变化
-        if (p(ctx).getString("device_name_saved", null) == null) {
-            p(ctx).edit().putString("device_name_saved", "1").apply()
         }
     }
 
