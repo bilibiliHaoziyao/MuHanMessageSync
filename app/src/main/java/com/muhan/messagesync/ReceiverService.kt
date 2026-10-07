@@ -126,7 +126,7 @@ class ReceiverService : Service() {
         var idleManager: IdleManager? = null
         var useIdle = false
         try {
-            idleManager = IdleManager(Executors.newSingleThreadExecutor(), session)
+            idleManager = IdleManager(session, Executors.newSingleThreadExecutor())
             idleManager.watch(folder)
             useIdle = true
         } catch (e: Exception) {
