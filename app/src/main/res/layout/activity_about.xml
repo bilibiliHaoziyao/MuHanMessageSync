@@ -70,9 +70,14 @@
                     android:padding="8dp">
 
                     <ImageView
+                        android:id="@+id/imgMuhan"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
+                        android:background="@drawable/rounded_rect"
+                        android:clipToOutline="true"
                         android:contentDescription="慕寒_Official"
+                        android:outlineProvider="background"
+                        android:scaleType="centerCrop"
                         android:src="@drawable/muhan_avatar" />
 
                     <LinearLayout
@@ -134,7 +139,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="开发者"
+                            android:text="@string/role_assistant_dev"
                             android:textColor="@color/text_main"
                             android:textSize="12sp" />
                     </LinearLayout>

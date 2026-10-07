@@ -12,6 +12,9 @@ class AboutActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_about)
 
+        // 慕寒_Official 头像圆角矩形裁剪（XML 属性在低版本不生效，代码兜底）
+        findViewById<View>(R.id.imgMuhan).clipToOutline = true
+
         // 慕寒_Official → GitHub 主页
         findViewById<View>(R.id.devMuhan).setOnClickListener {
             open("https://github.com/bilibiliHaoziyao")

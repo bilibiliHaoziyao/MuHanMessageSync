@@ -43,6 +43,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var etImapPassword: TextInputEditText
     private lateinit var etImapFolder: TextInputEditText
     private lateinit var etDeviceName: TextInputEditText
+    private lateinit var btnPresetQQ: MaterialButton
+    private lateinit var btnPreset163: MaterialButton
+    private lateinit var btnPresetGmail: MaterialButton
+    private lateinit var btnPresetOutlook: MaterialButton
     private lateinit var btnSave: MaterialButton
     private lateinit var btnToggleService: MaterialButton
     private lateinit var btnTest: MaterialButton
@@ -64,6 +68,20 @@ class MainActivity : AppCompatActivity() {
 
         btnModeSender.setOnClickListener { updateModeVisibility("sender") }
         btnModeReceiver.setOnClickListener { updateModeVisibility("receiver") }
+
+        // 邮箱服务商快速预设：一键填入 SMTP / IMAP 服务器与端口
+        btnPresetQQ.setOnClickListener {
+            applyPreset("QQ邮箱", "smtp.qq.com", 465, true, "imap.qq.com", 993, true)
+        }
+        btnPreset163.setOnClickListener {
+            applyPreset("163邮箱", "smtp.163.com", 465, true, "imap.163.com", 993, true)
+        }
+        btnPresetGmail.setOnClickListener {
+            applyPreset("Gmail", "smtp.gmail.com", 465, true, "imap.gmail.com", 993, true)
+        }
+        btnPresetOutlook.setOnClickListener {
+            applyPreset("Outlook", "smtp.office365.com", 587, false, "imap-mail.outlook.com", 993, true)
+        }
 
         btnSave.setOnClickListener {
             saveSettings()
@@ -102,6 +120,10 @@ class MainActivity : AppCompatActivity() {
         etImapPassword = findViewById(R.id.etImapPassword)
         etImapFolder = findViewById(R.id.etImapFolder)
         etDeviceName = findViewById(R.id.etDeviceName)
+        btnPresetQQ = findViewById(R.id.btnPresetQQ)
+        btnPreset163 = findViewById(R.id.btnPreset163)
+        btnPresetGmail = findViewById(R.id.btnPresetGmail)
+        btnPresetOutlook = findViewById(R.id.btnPresetOutlook)
         btnSave = findViewById(R.id.btnSave)
         btnToggleService = findViewById(R.id.btnToggleService)
         btnTest = findViewById(R.id.btnTest)
@@ -166,6 +188,27 @@ class MainActivity : AppCompatActivity() {
     private fun updateModeVisibility(mode: String) {
         cardSender.visibility = if (mode == "sender") MaterialCardView.VISIBLE else MaterialCardView.GONE
         cardReceiver.visibility = if (mode == "receiver") MaterialCardView.VISIBLE else MaterialCardView.GONE
+    }
+
+    /**
+     * 应用邮箱服务商预设：填入 SMTP / IMAP 服务器地址、端口与加密方式，并自动保存。
+     * 账号、授权码、收件人仍需用户自行填写。
+     */
+    private fun applyPreset(
+        label: String,
+        smtpHost: String, smtpPort: Int, smtpSslOn: Boolean,
+        imapHost: String, imapPort: Int, imapSslOn: Boolean
+    ) {
+        etSmtpHost.setText(smtpHost)
+        etSmtpPort.setText(smtpPort.toString())
+        switchSmtpSsl.isChecked = smtpSslOn
+        etImapHost.setText(imapHost)
+        etImapPort.setText(imapPort.toString())
+        switchImapSsl.isChecked = imapSslOn
+        if (etSmtpUser.text.isNullOrBlank()) etSmtpUser.setText(etImapUser.text?.toString() ?: "")
+        if (etImapUser.text.isNullOrBlank()) etImapUser.setText(etSmtpUser.text?.toString() ?: "")
+        saveSettings()
+        Toast.makeText(this, "已应用${label}预设，请补全账号、授权码与收件人", Toast.LENGTH_LONG).show()
     }
 
     private fun toggleService() {

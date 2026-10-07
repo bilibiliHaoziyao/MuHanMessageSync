@@ -98,5 +98,14 @@ object SettingsStore {
             .edit().putBoolean("service_enabled", enabled).apply()
     }
 
+    /** 是否已完成首次进入的引导 */
+    fun isOnboarded(ctx: Context): Boolean =
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("onboarded", false)
+
+    fun setOnboarded(ctx: Context) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean("onboarded", true).apply()
+    }
+
     private fun p(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }

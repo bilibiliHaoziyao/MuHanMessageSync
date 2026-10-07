@@ -6,6 +6,12 @@
     <string name="mode_receiver">接收端（还原通知）</string>
     <string name="smtp_settings">服务端设置 · SMTP 发信</string>
     <string name="imap_settings">接收端设置 · IMAP 收信</string>
+    <string name="preset_title">邮箱服务商快速预设</string>
+    <string name="preset_hint">点击自动填入对应服务商的 SMTP / IMAP 服务器地址与端口</string>
+    <string name="preset_qq">QQ邮箱</string>
+    <string name="preset_163">163邮箱</string>
+    <string name="preset_gmail">Gmail</string>
+    <string name="preset_outlook">Outlook</string>
     <string name="common_settings">通用设置</string>
     <string name="device_name">设备名称</string>
     <string name="smtp_host">SMTP 服务器地址（如 smtp.qq.com）</string>
@@ -25,7 +31,20 @@
     <string name="toggle_service">启动服务</string>
     <string name="test">测试</string>
     <string name="about_title">关于慕寒消息云同步</string>
-    <string name="version_text">版本 0.1.0-beta</string>
+    <string name="version_text">版本 0.2.0-beta</string>
+    <string name="role_assistant_dev">辅助开发</string>
+    <!-- 首启引导 -->
+    <string name="onboard_title">欢迎使用慕寒消息云同步</string>
+    <string name="onboard_intro">首次使用请完成以下两步设置，确保通知可以正常同步</string>
+    <string name="onboard_step1_title">① 开启通知使用权</string>
+    <string name="onboard_step1_desc">服务端模式需要读取系统通知。点击下方按钮，在列表中找到「慕寒消息云同步」并开启权限。</string>
+    <string name="onboard_step1_btn">去开启通知使用权</string>
+    <string name="onboard_step2_title">② 后台保活</string>
+    <string name="onboard_step2_desc">建议允许忽略电池优化，防止同步服务被系统休眠；部分手机还需在系统设置中允许应用「自启动」与「后台运行」。</string>
+    <string name="onboard_step2_btn">去设置后台保活</string>
+    <string name="onboard_done">开始使用</string>
+    <string name="onboard_status_ok">已完成 ✓</string>
+    <string name="onboard_status_todo">未完成，点击下方按钮设置</string>
     <string name="license_text">本软件基于 MIT 协议开源</string>
     <string name="repo_url">https://github.com/bilibiliHaoziyao/MuHanMessageSync</string>
 </resources>
