@@ -168,13 +168,14 @@ class MainActivity : BaseActivity() {
         }
 
         override fun onBindViewHolder(holder: VH, position: Int) {
-            val it = items[position]
+            // 命名为 item 而非 it：避免与下面点击监听 lambda 的隐式参数 it(View) 发生遮蔽
+            val item = items[position]
             val ctx = holder.itemView.context
 
-            val appName = it.app.ifBlank { it.pkg.ifBlank { "未知应用" } }
+            val appName = item.app.ifBlank { item.pkg.ifBlank { "未知应用" } }
             holder.tvApp.text = appName
 
-            val isSend = it.direction == "send"
+            val isSend = item.direction == "send"
             holder.tvDir.text =
                 if (isSend) ctx.getString(R.string.dir_send) else ctx.getString(R.string.dir_receive)
             val chipColor = if (isSend) Color.parseColor("#C97B94") else Color.parseColor("#7BA6C9")
@@ -184,34 +185,34 @@ class MainActivity : BaseActivity() {
                 setColor(chipColor)
             }
 
-            if (it.title.isBlank()) {
+            if (item.title.isBlank()) {
                 holder.tvTitle.visibility = View.GONE
             } else {
                 holder.tvTitle.visibility = View.VISIBLE
-                holder.tvTitle.text = it.title
+                holder.tvTitle.text = item.title
             }
-            if (it.text.isBlank()) {
+            if (item.text.isBlank()) {
                 holder.tvText.visibility = View.GONE
             } else {
                 holder.tvText.visibility = View.VISIBLE
-                holder.tvText.text = it.text
+                holder.tvText.text = item.text
             }
 
-            val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date(it.time))
-            val meta = if (it.device.isNotBlank())
-                "$time · ${ctx.getString(R.string.history_from, it.device)}" else time
+            val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date(item.time))
+            val meta = if (item.device.isNotBlank())
+                "$time · ${ctx.getString(R.string.history_from, item.device)}" else time
             holder.tvMeta.text = meta
 
             // v1.1：图标从本地文件解码（此前存 base64 在 SharedPreferences）
-            val bmp = IconUtil.decodeIconFile(it.iconPath)
+            val bmp = IconUtil.decodeIconFile(item.iconPath)
             if (bmp != null) {
                 holder.ivIcon.setImageBitmap(bmp)
             } else {
                 holder.ivIcon.setImageResource(android.R.drawable.sym_def_app_icon)
             }
 
-            holder.itemView.setOnClickListener { onClick(it) }
-            holder.itemView.setOnLongClickListener { onLongClick(it); true }
+            holder.itemView.setOnClickListener { onClick(item) }
+            holder.itemView.setOnLongClickListener { onLongClick(item); true }
         }
 
         class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
